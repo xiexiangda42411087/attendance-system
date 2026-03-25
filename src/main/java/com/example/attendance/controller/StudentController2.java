@@ -2,6 +2,7 @@ package com.example.attendance.controller;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Arrays;
+
 class Result<T>{
     private Integer code;
     private String message;
@@ -72,7 +73,10 @@ public class StudentController2 {
     }
     @GetMapping("/list")
     public Result<List<Student>> getStudentList(@RequestParam String className,@RequestParam(defaultValue = "1") Integer page){
-        List<Student> studentList=Arrays.asList(new Student("42411087","谢祥达",className),new Student("42411088","张三",className));
+        List<Student> studentList=Arrays.asList(
+                new Student("42411087","谢祥达",className),
+                new Student("42411088","张三",className)
+        );
         return Result.success(studentList);
     }
 }

@@ -1,0 +1,19 @@
+package com.example.attendance.controller;
+
+import org.springframework.stereotype.Repository;
+
+@Repository  // 标记为数据访问层组件
+public class StudentDao {
+    /*@Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    public void insert(Student student) {
+        String sql = "INSERT INTO student (student_id, name, class_name) VALUES (?, ?, ?)";
+        jdbcTemplate.update(sql, student.getStudentId(), student.getName(), student.getClassName());
+    }
+
+    public Student findById(String studentId) {
+        String sql = "SELECT * FROM student WHERE student_id = ?";
+        return jdbcTemplate.queryForObject(sql, new BeanPropertyRowMapper<>(Student.class), studentId);
+    }*/
+}
