@@ -1,10 +1,13 @@
 package com.example.attendance.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 @Repository  // 标记为数据访问层组件
 public class StudentDao {
-    /*@Autowired
+    @Autowired
     private JdbcTemplate jdbcTemplate;
 
     public void insert(Student student) {
@@ -15,5 +18,5 @@ public class StudentDao {
     public Student findById(String studentId) {
         String sql = "SELECT * FROM student WHERE student_id = ?";
         return jdbcTemplate.queryForObject(sql, new BeanPropertyRowMapper<>(Student.class), studentId);
-    }*/
+    }
 }

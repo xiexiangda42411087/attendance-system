@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.*;
             return Result.success(studentService.createStudent(student));
         }
 
-        /*@GetMapping("/{id}")
+        @GetMapping("/{id}")
         public Result<Student> getById(@PathVariable String id) {
             return Result.success(studentService.getStudentById(id));
-        }*/
+        }
     }
