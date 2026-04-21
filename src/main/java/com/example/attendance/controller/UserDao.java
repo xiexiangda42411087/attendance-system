@@ -19,7 +19,7 @@ public class UserDao {
     // 1. 新增教师用户
     public int insert(User user) {
         String sql = "INSERT INTO \"user\" (username, password, real_name, role, create_time) VALUES (?, ?, ?, ?, NOW())";
-        return jdbcTemplate.update(sql, user.getUsername(), user.getPassword(), user.getRealName(), user.getRole());
+        return jdbcTemplate.update(sql, user.getUsername(), user.getPassword(), user.getRealName(), "TEACHER");
     }
 
     // 2. 根据 ID 查询
@@ -31,7 +31,8 @@ public class UserDao {
     // 3. 根据用户名查询（登录验证）
     public User findByUsername(String username) {
         String sql = "SELECT * FROM \"user\" WHERE username = ?";
-        return jdbcTemplate.queryForObject(sql, new UserRowMapper(), username);
+        List<User> userList = jdbcTemplate.query(sql, new UserRowMapper(), username);
+        return userList.isEmpty() ? null : userList.get(0);
     }
 
     // 4. 查询所有教师

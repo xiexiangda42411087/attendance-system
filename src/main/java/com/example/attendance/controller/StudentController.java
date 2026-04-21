@@ -1,22 +1,39 @@
 package com.example.attendance.controller;
+
+import com.example.attendance.entity.Student;
+import com.example.attendance.service.StudentService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import java.util.Arrays;
 import java.util.List;
+
 @RestController
+@RequestMapping("/student")
 public class StudentController {
-    @GetMapping("/student/info")
-    public String getStudentInfo(){
-        return "姓名：谢祥达，学号：42411087，班级：2024级网络空间安全";
+
+    @Autowired
+    private StudentService studentService;
+
+    // 创建学生
+    @PostMapping
+    public String create(@RequestBody Student student) {
+        return studentService.createStudent(student);
     }
-    @PostMapping("/student/attendance")
-    public String checkAttendance(@RequestBody String studentId){
-        return "学号为 "+studentId+" 的学生打卡成功！";
+
+    // 根据学号查询
+    @GetMapping("/{studentId}")
+    public Student getById(@PathVariable String studentId) {
+        return studentService.getStudentById(studentId);
     }
-    @GetMapping("/student/courses")
-    public List<String> getCourseList(){
-        return Arrays.asList(
-                "Java EE开发实践",
-                "大众排球"
-        );
+
+    // 根据班级查询
+    @GetMapping("/class")
+    public List<Student> getByClass(@RequestParam String className) {
+        return studentService.getStudentsByClassName(className);
+    }
+
+    // 查询所有
+    @GetMapping
+    public List<Student> getAll() {
+        return studentService.getAllStudents();
     }
 }
