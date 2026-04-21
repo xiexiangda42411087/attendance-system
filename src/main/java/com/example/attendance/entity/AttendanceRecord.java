@@ -1,4 +1,4 @@
-package com.example.attendance.controller;
+package com.example.attendance.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;

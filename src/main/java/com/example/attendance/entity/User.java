@@ -1,4 +1,4 @@
-package com.example.attendance.controller;
+package com.example.attendance.entity;
 
 import java.sql.Timestamp;
 import lombok.Data; // 需引入 lombok 依赖，也可手动写 get/set

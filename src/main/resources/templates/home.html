@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>考勤管理系统 - 首页</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-container">
+        <span class="nav-brand">考勤管理系统</span>
+        <div class="nav-right">
+            <span id="welcomeMsg"></span>
+            <button class="btn btn-sm" onclick="logout()">退出登录</button>
+        </div>
+    </div>
+</nav>
+
+<div class="container" style="max-width: 960px;">
+    <div class="welcome-card">
+        <h2 id="greeting"></h2>
+        <p>您当前的角色是：<strong id="userRole"></strong></p>
+    </div>
+
+    <!-- 管理员功能卡片 -->
+    <div class="feature-grid" id="adminFeatures" style="display: none;">
+        <div class="feature-card">
+            <h3>教师管理</h3>
+            <p>添加、编辑、删除教师账号</p>
+            <a th:href="@{/users/teacher-page}" class="btn btn-outline">进入管理</a>
+        </div>
+        <div class="feature-card">
+            <h3>数据统计</h3>
+            <p>查看系统数据概览</p>
+            <a href="#" class="btn btn-outline">查看详情</a>
+        </div>
+    </div>
+
+    <!-- 教师功能卡片 -->
+    <div class="feature-grid" id="teacherFeatures" style="display: none;">
+        <div class="feature-card">
+            <h3>课程考勤</h3>
+            <p>管理学生考勤记录</p>
+            <a href="#" class="btn btn-outline">进入管理</a>
+        </div>
+    </div>
+
+    <!-- 学生功能卡片 -->
+    <div class="feature-grid" id="studentFeatures" style="display: none;">
+        <div class="feature-card">
+            <h3>我的考勤</h3>
+            <p>查看个人考勤记录</p>
+            <a href="#" class="btn btn-outline">查看记录</a>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

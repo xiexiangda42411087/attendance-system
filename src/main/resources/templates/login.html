@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} + ' - 考勤管理系统'">用户登录 - 考勤管理系统</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h1>考勤管理系统</h1>
+            <p>欢迎回来，请登录您的账号</p>
+        </div>
+
+        <!-- 错误提示 -->
+        <div th:if="${errorMsg}" class="alert alert-error" th:text="${errorMsg}"></div>
+        <!-- 注册成功提示 -->
+        <div th:if="${successMsg}" class="alert alert-success" th:text="${successMsg}"></div>
+
+        <form th:action="@{/login}" method="post" id="loginForm">
+            <div class="form-group">
+                <label for="username">用户名</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">👤</span>
+                    <input
+                            type="text"
+                            id="username"
+                            name="username"
+                            placeholder="请输入用户名"
+                            required
+                    >
+                </div>
+                <span class="error-hint" id="usernameError"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="password">密码</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">🔒</span>
+                    <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder="请输入密码"
+                            required
+                    >
+                    <span class="toggle-password" onclick="togglePassword()">👁️</span>
+                </div>
+                <span class="error-hint" id="passwordError"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
+                登 录
+            </button>
+        </form>
+
+        <div class="card-footer">
+            <span>还没有账号？</span>
+            <a th:href="@{/register-page}">立即注册</a>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

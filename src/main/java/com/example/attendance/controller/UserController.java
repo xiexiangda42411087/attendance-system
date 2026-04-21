@@ -1,10 +1,14 @@
 package com.example.attendance.controller;
 
+import com.example.attendance.entity.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import com.example.attendance.service.UserService;
+import java.util.Map;
+import java.util.LinkedHashMap;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/users")
@@ -29,23 +33,22 @@ public class UserController {
 
     // 2. 根据 ID 查询用户
     @GetMapping("/{id}")
-    public ResponseEntity<User> findById(@PathVariable Integer id) {
+    public ResponseEntity<Map<String, Object>> findById(@PathVariable Integer id) {
         User user = userService.findById(id);
-        return ResponseEntity.ok(user);
-    }
-
-    // 3. 登录验证（根据用户名查询）
-    @GetMapping("/username/{username}")
-    public ResponseEntity<User> findByUsername(@PathVariable String username) {
-        User user = userService.findByUsername(username);
-        return ResponseEntity.ok(user);
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(toSafeMap(user));
     }
 
     // 4. 查询所有教师
     @GetMapping("/teachers")
-    public ResponseEntity<List<User>> findAllTeachers() {
+    public ResponseEntity<List<Map<String, Object>>> findAllTeachers() {
         List<User> teachers = userService.findAllTeachers();
-        return ResponseEntity.ok(teachers);
+        List<Map<String, Object>> result = teachers.stream()
+                .map(this::toSafeMap)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(result);
     }
 
     // 5. 更新用户
@@ -64,6 +67,17 @@ public class UserController {
     public ResponseEntity<String> deleteUser(@PathVariable Integer id) {
         userService.deleteUser(id);
         return new ResponseEntity<>("用户删除成功", HttpStatus.OK);
+    }
+
+    // 将 User 转为不含密码的安全 Map
+    private Map<String, Object> toSafeMap(User user) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("id", user.getId());
+        map.put("username", user.getUsername());
+        map.put("realName", user.getRealName());
+        map.put("role", user.getRole());
+        map.put("createTime", user.getCreateTime());
+        return map;
     }
 }
 
