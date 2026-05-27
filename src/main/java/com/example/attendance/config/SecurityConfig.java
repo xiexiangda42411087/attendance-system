@@ -45,8 +45,10 @@ public class SecurityConfig {
                                 "/css/**", "/js/**", "/images/**",
                                 "/student/list", "/student/add", "/student/edit/**",
                                 "/student/save", "/student/delete/**", "/student/batch-delete",
-                                "/attendance/checkIn",          // 打卡页面
-                                "/attendance/list"              // 考勤记录列表
+                                "/attendance/checkIn",
+                                "/attendance/list",
+                                "/attendance/import",
+                                "/attendance/statistics"
                         ).permitAll()
 
                         // 教师管理接口：仅 ADMIN 可操作（新增、删除、更新教师）

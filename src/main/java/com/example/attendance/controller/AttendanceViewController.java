@@ -1,9 +1,11 @@
 package com.example.attendance.controller;
 
+import com.example.attendance.dto.AttendanceStatisticsDTO;
 import com.example.attendance.entity.Attendance;
 import com.example.attendance.entity.Student;
 import com.example.attendance.service.AttendanceService;
 import com.example.attendance.service.StudentService;
+import com.example.attendance.dto.ImportResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -157,5 +160,66 @@ public class AttendanceViewController {
     private String getCurrentStudentId() {
         // TODO: 替换为 SecurityContextHolder.getContext().getAuthentication().getName()
         return null;
+    }
+
+    // ==================== 批量导入页面 ====================
+    @GetMapping("/import")
+    public String importPage() {
+        return "attendance-import";
+    }
+
+    // ==================== 处理文件上传导入 ====================
+    @PostMapping("/import")
+    public String importFile(@RequestParam("file") MultipartFile file,
+                             RedirectAttributes redirectAttributes) {
+        try {
+            ImportResult result = attendanceService.importFromExcel(file);
+
+            StringBuilder msg = new StringBuilder();
+            msg.append("导入完成！成功: ").append(result.getSuccessCount()).append("条");
+            if (result.getFailCount() > 0) {
+                msg.append("，失败: ").append(result.getFailCount()).append("条");
+            }
+            redirectAttributes.addFlashAttribute("message", msg.toString());
+
+            if (result.hasErrors() && result.getErrorDetails().size() <= 10) {
+                redirectAttributes.addFlashAttribute("errorDetails", result.getErrorDetails());
+            }
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("message", "导入失败: " + e.getMessage());
+        }
+        return "redirect:/attendance/import";
+    }
+
+    // ==================== 统计页面 ====================
+    @GetMapping("/statistics")
+    public String statistics(
+            @RequestParam(required = false) String studentId,
+            @RequestParam(required = false) String courseId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime,
+            Model model) {
+
+        if (studentId != null && !studentId.isEmpty()) {
+            AttendanceStatisticsDTO stats;
+            if (startTime != null && endTime != null) {
+                stats = attendanceService.getStudentStatisticsByDateRange(studentId, startTime, endTime);
+            } else {
+                stats = attendanceService.getStudentStatistics(studentId);
+            }
+            model.addAttribute("stats", stats);
+        }
+
+        if (courseId != null && !courseId.isEmpty() && startTime != null && endTime != null) {
+            AttendanceStatisticsDTO courseStats = attendanceService.getCourseStatistics(courseId, startTime, endTime);
+            model.addAttribute("courseStats", courseStats);
+        }
+
+        model.addAttribute("studentId", studentId);
+        model.addAttribute("courseId", courseId);
+        model.addAttribute("startTime", startTime);
+        model.addAttribute("endTime", endTime);
+
+        return "attendance-statistics";
     }
 }
