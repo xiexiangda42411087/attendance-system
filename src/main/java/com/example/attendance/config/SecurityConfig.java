@@ -48,20 +48,27 @@ public class SecurityConfig {
                                 "/attendance/checkIn",
                                 "/attendance/list",
                                 "/attendance/import",
-                                "/attendance/statistics"
+                                "/attendance/statistics",
+                                "/course/list",
+                                "/api/leave/apply",
+                                "/api/leave/student/**"
                         ).permitAll()
 
                         // 教师管理接口：仅 ADMIN 可操作（新增、删除、更新教师）
                         .requestMatchers(
-                                "/api/users/teacher",    // POST 新增教师
-                                "/api/users/{id}",        // DELETE 删除用户
-                                "/api/users"              // PUT 更新用户
+                                "/api/users/teacher",
+                                "/api/users/{id}",
+                                "/api/users"
                         ).hasRole("ADMIN")
 
                         // 查询接口：ADMIN 和 TEACHER 可查看
                         .requestMatchers(
-                                "/api/users/teachers",    // GET 查询所有教师
-                                "/api/users/{id}"         // GET 按ID查询（与DELETE同路径但方法不同）
+                                "/api/users/teachers",
+                                "/api/users/{id}",
+                                "/api/leave/approve/**",
+                                "/api/leave/status/**",
+                                "/api/leave/pending/count",
+                                "/api/course/**"
                         ).hasAnyRole("ADMIN", "TEACHER")
 
                         // 学生接口

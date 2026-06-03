@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>课程管理 - 考勤管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="container mt-4">
+    <div th:if="${message}" class="alert alert-info alert-dismissible fade show">
+        <span th:text="${message}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="bi bi-book"></i> 课程管理</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#courseModal"
+                onclick="resetForm()">
+            <i class="bi bi-plus-lg"></i> 添加课程
+        </button>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+                <thead class="table-dark">
+                <tr>
+                    <th>课程编号</th>
+                    <th>课程名称</th>
+                    <th>授课教师</th>
+                    <th>教室</th>
+                    <th>上课时间</th>
+                    <th>星期</th>
+                    <th class="table-col-action">操作</th>
+                </tr>
+                </thead>
+                <tbody id="courseTableBody">
+                <tr>
+                    <td colspan="7" class="text-center py-4 text-muted">
+                        <div class="spinner-border text-primary"></div>
+                        <p class="mt-2">加载中...</p>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 课程编辑弹窗 -->
+<div class="modal fade" id="courseModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalTitle">添加课程</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="courseForm">
+                <div class="modal-body">
+                    <input type="hidden" id="isEdit" value="false">
+                    <div class="mb-3">
+                        <label class="form-label">课程编号 <span class="text-danger">*</span></label>
+                        <input type="text" id="courseId" class="form-control"
+                               placeholder="如CS101" required maxlength="20">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">课程名称 <span class="text-danger">*</span></label>
+                        <input type="text" id="courseName" class="form-control"
+                               placeholder="如Java程序设计" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">班级名称 <span class="text-danger">*</span></label>
+                        <input type="text" id="className" class="form-control"
+                               placeholder="如软件工程1班" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">教师ID <span class="text-danger">*</span></label>
+                        <input type="number" id="teacherId" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">教室名称</label>
+                        <input type="text" id="classroomName" class="form-control">
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label">行数</label>
+                            <input type="number" id="rows" class="form-control">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">列数</label>
+                            <input type="number" id="cols" class="form-control">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">排除座位</label>
+                        <input type="text" id="excludeSeats" class="form-control"
+                               placeholder="格式：row,col;row,col">
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-4">
+                            <label class="form-label">星期</label>
+                            <select id="weekday" class="form-select">
+                                <option value="">请选择</option>
+                                <option value="1">星期一</option>
+                                <option value="2">星期二</option>
+                                <option value="3">星期三</option>
+                                <option value="4">星期四</option>
+                                <option value="5">星期五</option>
+                                <option value="6">星期六</option>
+                                <option value="7">星期日</option>
+                            </select>
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">开始周</label>
+                            <input type="number" id="startWeek" class="form-control">
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">结束周</label>
+                            <input type="number" id="endWeek" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // 加载课程列表
+    function loadCourses() {
+        fetch('/api/course')
+            .then(res => res.json())
+            .then(courses => {
+                const tbody = document.getElementById('courseTableBody');
+                if (courses.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">暂无课程数据</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = courses.map(c => `
+                    <tr>
+                        <td>${c.courseId}</td>
+                        <td>${c.name}</td>
+                        <td>${c.teacherName || '-'}</td>
+                        <td>${c.classroom || '-'}</td>
+                        <td>${c.startTime || '-'} ~ ${c.endTime || '-'}</td>
+                        <td>${c.weekDay || '-'}</td>
+                        <td class="table-col-action">
+                            <button class="btn btn-sm btn-outline-primary" onclick='editCourse(${JSON.stringify(c)})'>
+                                <i class="bi bi-pencil-square"></i> 编辑
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="deleteCourse('${c.courseId}')">
+                                <i class="bi bi-trash"></i> 删除
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            });
+    }
+
+    // 编辑课程
+    function editCourse(course) {
+    document.getElementById('modalTitle').textContent = '编辑课程';
+    document.getElementById('isEdit').value = 'true';
+    document.getElementById('courseId').value = course.courseId;
+    document.getElementById('courseId').readOnly = true;
+    document.getElementById('courseName').value = course.courseName;
+    document.getElementById('className').value = course.className || '';
+    document.getElementById('teacherId').value = course.teacher?.id || '';
+    document.getElementById('classroomName').value = course.classroomName || '';
+    document.getElementById('rows').value = course.rows || '';
+    document.getElementById('cols').value = course.cols || '';
+    document.getElementById('excludeSeats').value = course.excludeSeats || '';
+    document.getElementById('weekday').value = course.weekday || '';
+    document.getElementById('startWeek').value = course.startWeek || '';
+    document.getElementById('endWeek').value = course.endWeek || '';
+    new bootstrap.Modal(document.getElementById('courseModal')).show();
+}
+
+    // 重置表单
+    function resetForm() {
+        document.getElementById('modalTitle').textContent = '添加课程';
+        document.getElementById('isEdit').value = 'false';
+        document.getElementById('courseId').readOnly = false;
+        document.getElementById('courseForm').reset();
+    }
+
+    // 删除课程
+    function deleteCourse(id) {
+        if (!confirm('确定要删除课程 ' + id + ' 吗？')) return;
+        fetch('/api/course/' + id, { method: 'DELETE' })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.msg);
+                loadCourses();
+            });
+    }
+
+    // 提交表单
+document.getElementById('courseForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const isEdit = document.getElementById('isEdit').value === 'true';
+    const courseId = document.getElementById('courseId').value;
+    const data = {
+        courseId: courseId,
+        courseName: document.getElementById('courseName').value,
+        className: document.getElementById('className').value,
+        teacher: { id: parseInt(document.getElementById('teacherId').value) },
+        classroomName: document.getElementById('classroomName').value || null,
+        rows: document.getElementById('rows').value || null,
+        cols: document.getElementById('cols').value || null,
+        excludeSeats: document.getElementById('excludeSeats').value || null,
+        weekday: document.getElementById('weekday').value || null,
+        startWeek: document.getElementById('startWeek').value || null,
+        endWeek: document.getElementById('endWeek').value || null
+    };
+
+    const url = isEdit ? '/api/course/' + courseId : '/api/course';
+    const method = isEdit ? 'PUT' : 'POST';
+
+    fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.msg);
+        bootstrap.Modal.getInstance(document.getElementById('courseModal')).hide();
+        loadCourses();
+    });
+});
+
+    // 页面加载
+    loadCourses();
+</script>
+</body>
+</html>

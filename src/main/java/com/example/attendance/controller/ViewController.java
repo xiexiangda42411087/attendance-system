@@ -33,4 +33,9 @@ public class ViewController {
     public String homePage() {
         return "home";
     }
+
+    @GetMapping("/course/list")
+    public String courseListPage() {
+        return "course-list";
+    }
 }

@@ -407,3 +407,28 @@ body {
     border-radius: 12px;
     overflow: hidden;
 }
+
+/* 导航栏强制横排 */
+.navbar-nav {
+    flex-direction: row !important;
+    flex-wrap: nowrap;
+}
+
+.navbar-nav .nav-link {
+    white-space: nowrap;      /* 文字不换行 */
+    padding: 0.5rem 0.5rem;   /* 减小内边距，腾出空间 */
+    font-size: 14px;          /* 缩小字体 */
+}
+
+.navbar-brand {
+    white-space: nowrap;
+    font-size: 16px;
+}
+
+/* 小屏幕下导航栏滚动 */
+@media (max-width: 1200px) {
+    .navbar-nav {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}

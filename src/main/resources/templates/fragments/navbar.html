@@ -4,7 +4,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary" th:fragment="navbar">
     <div class="container">
         <a class="navbar-brand" th:href="@{/home}">
-            <i class="bi bi-mortarboard-fill"></i> 考勤管理系统
+            <i class="bi bi-mortarboard-fill"></i> 考勤系统
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
@@ -22,21 +22,6 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" th:href="@{/student/list}">
-                        <i class="bi bi-people-fill"></i> 学生管理
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" th:href="@{/home}">
-                        <i class="bi bi-house-fill"></i> 首页
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <button class="btn btn-outline-light btn-sm mt-1" onclick="logout()">
-                        <i class="bi bi-box-arrow-right"></i> 退出
-                    </button>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link" th:href="@{/attendance/import}">
                         <i class="bi bi-file-earmark-excel"></i> 批量导入
                     </a>
@@ -46,7 +31,26 @@
                         <i class="bi bi-graph-up"></i> 统计
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/student/list}">
+                        <i class="bi bi-people-fill"></i> 学生管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/course/list}">
+                        <i class="bi bi-book"></i> 课程管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/home}">
+                        <i class="bi bi-house-fill"></i> 首页
+                    </a>
+                </li>
             </ul>
+            <!-- 退出按钮单独放右边 -->
+            <button class="btn btn-outline-light btn-sm ms-3" onclick="logout()">
+                <i class="bi bi-box-arrow-right"></i> 退出
+            </button>
         </div>
     </div>
 </nav>
