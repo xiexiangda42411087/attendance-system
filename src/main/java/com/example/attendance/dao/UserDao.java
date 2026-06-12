@@ -17,14 +17,15 @@ public class UserDao {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    // 1. 新增用户（不再硬编码角色，由 Service 层传入）
+    // 1. 新增用户
     public int insert(User user) {
-        String sql = "INSERT INTO \"user\" (username, password, real_name, role, create_time) VALUES (?, ?, ?, ?, NOW())";
+        String sql = "INSERT INTO \"user\" (username, password, real_name, role, student_id, create_time) VALUES (?, ?, ?, ?, ?, NOW())";
         return jdbcTemplate.update(sql,
                 user.getUsername(),
                 user.getPassword(),
                 user.getRealName(),
-                user.getRole()  // 使用实体中的角色，而非硬编码 TEACHER
+                user.getRole(),
+                user.getStudentId()
         );
     }
 
@@ -48,7 +49,7 @@ public class UserDao {
         return jdbcTemplate.query(sql, new UserRowMapper());
     }
 
-    // 5. 更新用户（补充 username 字段更新）
+    // 5. 更新用户
     public int update(User user) {
         String sql = "UPDATE \"user\" SET username = ?, password = ?, real_name = ?, role = ? WHERE id = ?";
         return jdbcTemplate.update(sql,
@@ -77,6 +78,7 @@ public class UserDao {
             user.setRealName(rs.getString("real_name"));
             user.setRole(rs.getString("role"));
             user.setCreateTime(rs.getTimestamp("create_time"));
+            user.setStudentId(rs.getString("student_id"));
             return user;
         }
     }

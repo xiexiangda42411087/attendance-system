@@ -285,6 +285,33 @@ public class AttendanceServiceImpl implements AttendanceService {
                 .build();
     }
 
+    @Override
+    public AttendanceStatisticsDTO getStudentStatisticsByCourse(String studentId, String courseId) {
+        List<Object[]> results = attendanceRepository.countByStudentAndCourseGroupByStatus(studentId, courseId);
+
+        long total = 0, normal = 0, late = 0, early = 0, absent = 0;
+        for (Object[] row : results) {
+            String status = (String) row[0];
+            long count = (Long) row[1];
+            total += count;
+            switch (status) {
+                case "NORMAL": normal = count; break;
+                case "LATE": late = count; break;
+                case "EARLY": early = count; break;
+                case "ABSENT": absent = count; break;
+            }
+        }
+
+        return AttendanceStatisticsDTO.builder()
+                .totalCount(total)
+                .normalCount(normal)
+                .lateCount(late)
+                .earlyCount(early)
+                .absentCount(absent)
+                .attendanceRate(total > 0 ? (double) normal / total * 100 : 0)
+                .build();
+    }
+
     // ==================== 工具方法 ====================
 
     private String getCellValueAsString(Cell cell) {

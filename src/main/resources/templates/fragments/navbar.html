@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml" lang="en">
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary" th:fragment="navbar">
     <div class="container">
@@ -11,9 +11,10 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
+                <!-- 所有人可见 -->
                 <li class="nav-item">
-                    <a class="nav-link" th:href="@{/attendance/checkIn}">
-                        <i class="bi bi-check2-circle"></i> 考勤打卡
+                    <a class="nav-link" th:href="@{/home}">
+                        <i class="bi bi-house-fill"></i> 首页
                     </a>
                 </li>
                 <li class="nav-item">
@@ -21,39 +22,42 @@
                         <i class="bi bi-list-check"></i> 考勤记录
                     </a>
                 </li>
-                <li class="nav-item">
+
+                <!-- USER：考勤打卡 -->
+                <li class="nav-item" sec:authorize="hasRole('USER')">
+                    <a class="nav-link" th:href="@{/attendance/checkIn}">
+                        <i class="bi bi-check2-circle"></i> 考勤打卡
+                    </a>
+                </li>
+
+                <!-- ADMIN + TEACHER：批量导入、统计 -->
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMIN', 'TEACHER')">
                     <a class="nav-link" th:href="@{/attendance/import}">
                         <i class="bi bi-file-earmark-excel"></i> 批量导入
                     </a>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item" sec:authorize="hasAnyRole('ADMIN', 'TEACHER')">
                     <a class="nav-link" th:href="@{/attendance/statistics}">
                         <i class="bi bi-graph-up"></i> 统计
                     </a>
                 </li>
-                <li class="nav-item">
+
+                <!-- 仅 ADMIN：学生管理、课程管理 -->
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
                     <a class="nav-link" th:href="@{/student/list}">
                         <i class="bi bi-people-fill"></i> 学生管理
                     </a>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
                     <a class="nav-link" th:href="@{/course/list}">
                         <i class="bi bi-book"></i> 课程管理
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" th:href="@{/home}">
-                        <i class="bi bi-house-fill"></i> 首页
-                    </a>
-                </li>
             </ul>
-            <!-- 退出按钮单独放右边 -->
-            <button class="btn btn-outline-light btn-sm ms-3" onclick="logout()">
-                <i class="bi bi-box-arrow-right"></i> 退出
-            </button>
         </div>
     </div>
 </nav>
+
 <script>
     function logout() {
         fetch('/logout', { method: 'POST' })

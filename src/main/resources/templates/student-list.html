@@ -47,38 +47,49 @@
     <div class="card mb-3 shadow-sm">
         <div class="card-body">
             <form th:action="@{/student/list}" method="get" class="row g-2 align-items-end">
-                <div class="col-md-4">
+                <!-- 搜索框（占宽一些） -->
+                <div class="col-4 col-md-4">
                     <label class="form-label">搜索</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
-                        <input type="text" name="keyword" class="form-control"
-                               th:value="${keyword}" placeholder="学号/姓名/班级">
+                        <input type="text" name="keyword" class="form-control search-input"
+                               th:value="${keyword}"
+                               placeholder="学号/姓名/班级"
+                               title="按学号、姓名或班级搜索">
                     </div>
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label">排序字段</label>
+
+                <!-- 排序字段 -->
+                <div class="col-2 col-md-2">
+                    <label class="form-label">排序</label>
                     <select name="sortField" class="form-select">
                         <option value="studentId" th:selected="${sortField == 'studentId'}">学号</option>
                         <option value="name" th:selected="${sortField == 'name'}">姓名</option>
                         <option value="className" th:selected="${sortField == 'className'}">班级</option>
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label">排序方式</label>
+
+                <!-- 排序方式 -->
+                <div class="col-2 col-md-2">
+                    <label class="form-label">方式</label>
                     <select name="sortDir" class="form-select">
                         <option value="asc" th:selected="${sortDir == 'asc'}">升序</option>
                         <option value="desc" th:selected="${sortDir == 'desc'}">降序</option>
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label">每页条数</label>
+
+                <!-- 每页条数 -->
+                <div class="col-2 col-md-2">
+                    <label class="form-label">条数</label>
                     <select name="size" class="form-select">
-                        <option value="5" th:selected="${pageSize == 5}">5条</option>
-                        <option value="10" th:selected="${pageSize == 10}">10条</option>
-                        <option value="20" th:selected="${pageSize == 20}">20条</option>
+                        <option value="5" th:selected="${pageSize == 5}">5</option>
+                        <option value="10" th:selected="${pageSize == 10}">10</option>
+                        <option value="20" th:selected="${pageSize == 20}">20</option>
                     </select>
                 </div>
-                <div class="col-md-2">
+
+                <!-- 按钮 -->
+                <div class="col-2 col-md-2">
                     <button type="submit" class="btn btn-outline-primary w-100">
                         <i class="bi bi-search"></i> 搜索
                     </button>
@@ -165,17 +176,21 @@
                 </a>
             </li>
 
-            <!-- 页码（最多显示5个） -->
-            <th:block th:with="startPage=${#numbers.sequence(1, totalPages).size() > 5 ? (currentPage - 2 < 1 ? 1 : (currentPage + 2 > totalPages ? totalPages - 4 : currentPage - 2)) : 1},
-                                   endPage=${startPage + 4 > totalPages ? totalPages : startPage + 4}">
-                <li th:if="${startPage > 1}" class="page-item disabled"><span class="page-link">...</span></li>
+            <!-- 页码 -->
+            <th:block th:with="startPage=${currentPage - 2 < 1 ? 1 : (currentPage + 2 > totalPages ? (totalPages - 4 < 1 ? 1 : totalPages - 4) : currentPage - 2)},
+                           endPage=${startPage + 4 > totalPages ? totalPages : startPage + 4}">
+                <li th:if="${startPage > 1}" class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
                 <li th:each="i : ${#numbers.sequence(startPage, endPage)}"
                     class="page-item" th:classappend="${i == currentPage} ? 'active' : ''">
                     <a class="page-link"
                        th:href="@{/student/list(page=${i}, keyword=${keyword}, sortField=${sortField}, sortDir=${sortDir}, size=${pageSize})}"
                        th:text="${i}">1</a>
                 </li>
-                <li th:if="${endPage < totalPages}" class="page-item disabled"><span class="page-link">...</span></li>
+                <li th:if="${endPage < totalPages}" class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
             </th:block>
 
             <!-- 下一页 -->
@@ -188,8 +203,8 @@
         </ul>
     </nav>
 
-    <!-- 快捷跳转 -->
-    <div class="text-center mt-2" th:if="${totalPages > 10}">
+    <!-- 页码跳转 -->
+    <div class="text-center mt-2" th:if="${totalPages > 5}">
         <form th:action="@{/student/list}" method="get" class="d-inline-flex gap-2 align-items-center">
             <input type="hidden" name="keyword" th:value="${keyword}">
             <input type="hidden" name="sortField" th:value="${sortField}">

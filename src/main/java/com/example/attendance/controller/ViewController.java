@@ -38,4 +38,9 @@ public class ViewController {
     public String courseListPage() {
         return "course-list";
     }
+
+    @GetMapping("/users/teacher-page")
+    public String teacherPage() {
+        return "teacher-list";
+    }
 }

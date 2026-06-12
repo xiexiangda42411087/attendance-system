@@ -26,36 +26,100 @@
     <!-- 管理员功能卡片 -->
     <div class="feature-grid" id="adminFeatures" style="display: none;">
         <div class="feature-card">
-            <h3>教师管理</h3>
+            <h3>👨‍🏫 教师管理</h3>
             <p>添加、编辑、删除教师账号</p>
             <a th:href="@{/users/teacher-page}" class="btn btn-outline">进入管理</a>
         </div>
-        <div class="feature-card">
-            <h3>数据统计</h3>
-            <p>查看系统数据概览</p>
-            <a href="#" class="btn btn-outline">查看详情</a>
+        <div class="feature-card" id="courseCard">
+            <h3>📋 课程管理</h3>
+            <p>管理课程信息</p>
+            <a th:href="@{/course/list}" class="btn btn-outline">进入管理</a>
         </div>
     </div>
 
-    <!-- 教师功能卡片 -->
+    <!-- 教师/管理员共用功能 -->
     <div class="feature-grid" id="teacherFeatures" style="display: none;">
         <div class="feature-card">
-            <h3>课程考勤</h3>
+            <h3>📊 考勤统计</h3>
+            <p>查看系统数据概览</p>
+            <a th:href="@{/attendance/statistics}" class="btn btn-outline">查看详情</a>
+        </div>
+        <div class="feature-card">
+            <h3>📝 课程考勤</h3>
             <p>管理学生考勤记录</p>
-            <a href="#" class="btn btn-outline">进入管理</a>
+            <a th:href="@{/attendance/list}" class="btn btn-outline">进入管理</a>
         </div>
     </div>
 
     <!-- 学生功能卡片 -->
     <div class="feature-grid" id="studentFeatures" style="display: none;">
         <div class="feature-card">
-            <h3>我的考勤</h3>
+            <h3>📅 考勤打卡</h3>
+            <p>进行课程考勤打卡</p>
+            <a th:href="@{/attendance/checkIn}" class="btn btn-outline">去打卡</a>
+        </div>
+        <div class="feature-card">
+            <h3>📋 我的考勤</h3>
             <p>查看个人考勤记录</p>
-            <a href="#" class="btn btn-outline">查看记录</a>
+            <a th:href="@{/attendance/list}" class="btn btn-outline" id="myAttendanceBtn">查看记录</a>
         </div>
     </div>
 </div>
 
 <script th:src="@{/js/main.js}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const welcomeMsg = document.getElementById('welcomeMsg');
+        const greeting = document.getElementById('greeting');
+        const userRole = document.getElementById('userRole');
+
+        if (!welcomeMsg || !greeting || !userRole) return;
+
+        const username = sessionStorage.getItem('username');
+        const role = sessionStorage.getItem('role');
+
+        if (!username) {
+            window.location.href = '/login-page';
+            return;
+        }
+
+        welcomeMsg.textContent = '👋 ' + username;
+        greeting.textContent = '欢迎回来，' + username + '！';
+        userRole.textContent = role ? role.replace('ROLE_', '') : '未知';
+
+        const adminFeatures = document.getElementById('adminFeatures');
+        const teacherFeatures = document.getElementById('teacherFeatures');
+        const studentFeatures = document.getElementById('studentFeatures');
+
+        if (adminFeatures) adminFeatures.style.display = 'none';
+        if (teacherFeatures) teacherFeatures.style.display = 'none';
+        if (studentFeatures) studentFeatures.style.display = 'none';
+
+        if (role === 'ROLE_ADMIN') {
+            if (adminFeatures) adminFeatures.style.display = 'grid';
+            if (teacherFeatures) teacherFeatures.style.display = 'grid';
+        } else if (role === 'ROLE_TEACHER') {
+            if (teacherFeatures) teacherFeatures.style.display = 'grid';
+        } else if (role === 'ROLE_USER') {
+    if (studentFeatures) studentFeatures.style.display = 'grid';
+    const myBtn = document.getElementById('myAttendanceBtn');
+    if (myBtn) {
+        myBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            let studentId = sessionStorage.getItem('studentId');
+            if (!studentId) {
+                studentId = prompt('请输入你的学号：');
+                if (studentId) {
+                    sessionStorage.setItem('studentId', studentId);
+                }
+            }
+            if (studentId) {
+                window.location.href = '/attendance/list?studentId=' + encodeURIComponent(studentId);
+            }
+        });
+    }
+}
+    });
+</script>
 </body>
 </html>

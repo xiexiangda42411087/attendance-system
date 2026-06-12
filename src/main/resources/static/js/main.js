@@ -83,7 +83,7 @@ if (loginForm) {
                 const data = await response.json();
                 sessionStorage.setItem('username', data.username);
                 sessionStorage.setItem('role', data.role);
-                // Thymeleaf 页面跳转
+                sessionStorage.setItem('studentId', data.studentId);
                 window.location.href = '/home';
             } else {
                 const data = await response.json();
@@ -104,7 +104,6 @@ if (loginForm) {
     });
 }
 
-// ========== 注册页逻辑（用 fetch 调 API） ==========
 const registerForm = document.getElementById('registerForm');
 if (registerForm) {
     registerForm.addEventListener('submit', async function(e) {
@@ -112,6 +111,7 @@ if (registerForm) {
         clearErrors();
 
         const username = document.getElementById('username').value.trim();
+        const studentId = document.getElementById('studentId').value.trim();
         const realName = document.getElementById('realName').value.trim();
         const password = document.getElementById('password').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
@@ -124,6 +124,10 @@ if (registerForm) {
             hasError = true;
         } else if (!/^[a-zA-Z0-9]+$/.test(username)) {
             showError('usernameError', '用户名只能包含字母和数字');
+            hasError = true;
+        }
+        if (!studentId) {
+            showError('studentIdError', '请输入学号');
             hasError = true;
         }
         if (!realName) {
@@ -146,7 +150,12 @@ if (registerForm) {
             const response = await fetch('/api/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, realName, password })
+                body: JSON.stringify({
+                    username: username,
+                    studentId: studentId,
+                    realName: realName,
+                    password: password
+                })
             });
 
             if (response.ok) {
@@ -166,40 +175,6 @@ if (registerForm) {
         }
     });
 }
-
-// ========== 首页逻辑 ==========
-document.addEventListener('DOMContentLoaded', function() {
-    const welcomeMsg = document.getElementById('welcomeMsg');
-    const greeting = document.getElementById('greeting');
-    const userRole = document.getElementById('userRole');
-
-    if (welcomeMsg && greeting && userRole) {
-        const username = sessionStorage.getItem('username');
-        const role = sessionStorage.getItem('role');
-
-        if (!username) {
-            // 未登录就重定向
-            window.location.href = '/login-page';
-            return;
-        }
-
-        welcomeMsg.textContent = '👋 ' + username;
-        greeting.textContent = '欢迎回来，' + username + '！';
-        userRole.textContent = role ? role.replace('ROLE_', '') : '未知';
-
-        // 根据角色显示功能卡片
-        if (role === 'ROLE_ADMIN') {
-            document.getElementById('adminFeatures').style.display = 'grid';
-            document.getElementById('teacherFeatures').style.display = 'grid';
-            document.getElementById('studentFeatures').style.display = 'grid';
-        } else if (role === 'ROLE_TEACHER') {
-            document.getElementById('teacherFeatures').style.display = 'grid';
-            document.getElementById('studentFeatures').style.display = 'grid';
-        } else if (role === 'ROLE_USER') {
-            document.getElementById('studentFeatures').style.display = 'grid';
-        }
-    }
-});
 
 // ========== 退出登录 ==========
 function logout() {

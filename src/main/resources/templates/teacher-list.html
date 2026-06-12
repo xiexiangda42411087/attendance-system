@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>教师管理 - 考勤管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="container mt-4" style="max-width: 1100px;">
+    <!-- 提示消息 -->
+    <div th:if="${message}" class="alert alert-info alert-dismissible fade show">
+        <span th:text="${message}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0 text-nowrap"><i class="bi bi-person-badge"></i> 教师管理</h2>
+        <button class="btn btn-primary text-nowrap" data-bs-toggle="modal" data-bs-target="#teacherModal" onclick="resetForm()">
+            <i class="bi bi-plus-lg"></i> 添加
+        </button>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="row mb-3" id="statsCards">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title" id="totalTeachers">-</h5>
+                    <small>教师总数</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 教师表格 -->
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+                <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>用户名</th>
+                    <th>真实姓名</th>
+                    <th>角色</th>
+                    <th>创建时间</th>
+                    <th class="table-col-action">操作</th>
+                </tr>
+                </thead>
+                <tbody id="teacherTableBody">
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-muted">
+                        <div class="spinner-border text-primary"></div>
+                        <p class="mt-2">加载中...</p>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑/添加弹窗 -->
+<div class="modal fade" id="teacherModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalTitle">添加教师</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="teacherForm">
+                <div class="modal-body">
+                    <input type="hidden" id="isEdit" value="false">
+                    <input type="hidden" id="editId">
+
+                    <div class="mb-3">
+                        <label class="form-label">用户名 <span class="text-danger">*</span></label>
+                        <input type="text" id="username" class="form-control"
+                               placeholder="请输入用户名" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">真实姓名 <span class="text-danger">*</span></label>
+                        <input type="text" id="realName" class="form-control"
+                               placeholder="请输入真实姓名" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">
+                            密码 <span class="text-danger" id="pwdRequired">*</span>
+                        </label>
+                        <input type="password" id="password" class="form-control"
+                               placeholder="请输入密码">
+                        <div class="form-text" id="pwdHint">至少6位密码</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // 加载教师列表
+    function loadTeachers() {
+        fetch('/api/users/teachers')
+            .then(res => res.json())
+            .then(teachers => {
+                const tbody = document.getElementById('teacherTableBody');
+                document.getElementById('totalTeachers').textContent = teachers.length;
+                
+                if (teachers.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">暂无教师</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = teachers.map(t => `
+                    <tr>
+                        <td>${t.id}</td>
+                        <td>${t.username}</td>
+                        <td>${t.realName || '-'}</td>
+                        <td><span class="badge bg-info">${t.role}</span></td>
+                        <td>${t.createTime ? new Date(t.createTime).toLocaleDateString() : '-'}</td>
+                        <td class="table-col-action">
+                            <button class="btn btn-sm btn-primary me-1" onclick='editTeacher(${JSON.stringify(t).replace(/'/g, "&#39;")})'>
+                                <i class="bi bi-pencil-square"></i> 编辑
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteTeacher(${t.id})">
+                                <i class="bi bi-trash"></i> 删除
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            })
+            .catch(() => {
+                document.getElementById('teacherTableBody').innerHTML = 
+                    '<tr><td colspan="6" class="text-center py-4 text-muted">加载失败，请刷新重试</td></tr>';
+            });
+    }
+
+    // 编辑教师
+    function editTeacher(teacher) {
+        document.getElementById('modalTitle').textContent = '编辑教师';
+        document.getElementById('isEdit').value = 'true';
+        document.getElementById('editId').value = teacher.id;
+        document.getElementById('username').value = teacher.username;
+        document.getElementById('realName').value = teacher.realName || '';
+        document.getElementById('password').value = '';
+        document.getElementById('password').required = false;
+        document.getElementById('pwdRequired').style.display = 'none';
+        document.getElementById('pwdHint').textContent = '留空则不修改密码';
+        new bootstrap.Modal(document.getElementById('teacherModal')).show();
+    }
+
+    // 重置表单
+    function resetForm() {
+        document.getElementById('modalTitle').textContent = '添加教师';
+        document.getElementById('isEdit').value = 'false';
+        document.getElementById('editId').value = '';
+        document.getElementById('teacherForm').reset();
+        document.getElementById('password').required = true;
+        document.getElementById('pwdRequired').style.display = 'inline';
+        document.getElementById('pwdHint').textContent = '至少6位密码';
+    }
+
+    // 删除教师
+    function deleteTeacher(id) {
+        if (!confirm('确定要删除该教师吗？')) return;
+        fetch('/api/users/' + id, { method: 'DELETE' })
+            .then(res => {
+                if (res.ok) {
+                    alert('删除成功');
+                    loadTeachers();
+                } else {
+                    alert('删除失败');
+                }
+            });
+    }
+
+    // 提交表单
+    document.getElementById('teacherForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const isEdit = document.getElementById('isEdit').value === 'true';
+        const id = document.getElementById('editId').value;
+        
+        const data = {
+            username: document.getElementById('username').value.trim(),
+            realName: document.getElementById('realName').value.trim(),
+            role: 'TEACHER'
+        };
+
+        const password = document.getElementById('password').value;
+        if (password) {
+            data.password = password;
+        }
+
+        const url = isEdit ? '/api/users' : '/api/users/teacher';
+        const method = isEdit ? 'PUT' : 'POST';
+        
+        if (isEdit) {
+            data.id = parseInt(id);
+        }
+
+        fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(res => {
+            if (res.ok) {
+                alert(isEdit ? '更新成功' : '添加成功');
+                bootstrap.Modal.getInstance(document.getElementById('teacherModal')).hide();
+                loadTeachers();
+            } else {
+                return res.text().then(msg => { throw new Error(msg); });
+            }
+        })
+        .catch(err => alert('操作失败: ' + err.message));
+    });
+
+    // 页面加载
+    loadTeachers();
+</script>
+</body>
+</html>

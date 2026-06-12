@@ -3,9 +3,13 @@ package com.example.attendance.controller;
 import com.example.attendance.dto.AttendanceStatisticsDTO;
 import com.example.attendance.entity.Attendance;
 import com.example.attendance.entity.Student;
+import com.example.attendance.entity.User;
 import com.example.attendance.service.AttendanceService;
 import com.example.attendance.service.StudentService;
 import com.example.attendance.dto.ImportResult;
+import com.example.attendance.entity.Course;
+import com.example.attendance.service.CourseService;
+import com.example.attendance.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,6 +26,9 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.WeekFields;
 import java.util.Locale;
+import java.util.List;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @Controller
 @RequestMapping("/attendance")
@@ -33,11 +40,17 @@ public class AttendanceViewController {
     @Autowired
     private StudentService studentService;
 
-    // ==================== 打卡页面 ====================
+    @Autowired
+    private CourseService courseService;
+
+    @Autowired
+    private UserService userService;
+
     @GetMapping("/checkIn")
     public String checkInPage(Model model) {
-        // 获取当前登录用户（简化：从 SecurityContext 或 Session 获取）
-        // 这里先用 session 模拟
+        // 查询所有课程
+        List<Course> courses = courseService.getAllCourses();
+        model.addAttribute("courses", courses);
         model.addAttribute("currentTime", LocalDateTime.now());
         return "attendance-check-in";
     }
@@ -48,26 +61,37 @@ public class AttendanceViewController {
                           @RequestParam(required = false) String remark,
                           RedirectAttributes redirectAttributes) {
 
-        // 获取当前学生（实际应通过 SecurityContext 获取）
-        String studentId = getCurrentStudentId();
-        if (studentId == null) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
             redirectAttributes.addFlashAttribute("message", "请先登录");
             return "redirect:/login-page";
         }
 
+        String username = auth.getName();
+        User user = userService.findByUsername(username);
+        if (user == null || user.getStudentId() == null) {
+            redirectAttributes.addFlashAttribute("message", "未绑定学号");
+            return "redirect:/attendance/checkIn";
+        }
+        String studentId = user.getStudentId();
+
         Student student = studentService.getStudentById(studentId);
         if (student == null) {
             redirectAttributes.addFlashAttribute("message", "学生信息不存在");
-            return "redirect:/login-page";
+            return "redirect:/attendance/checkIn";
+        }
+
+        // 从课程表获取上下课时间
+        Course course = courseService.getCourseById(courseId);
+        if (course == null || course.getStartTime() == null || course.getEndTime() == null) {
+            redirectAttributes.addFlashAttribute("message", "课程信息不完整");
+            return "redirect:/attendance/checkIn";
         }
 
         LocalDateTime now = LocalDateTime.now();
         LocalTime currentTime = now.toLocalTime();
-
-        // 课程时间限制（假设上课时间为 8:00）
-        LocalTime classStartTime = LocalTime.of(8, 0);
-        LocalTime earliestTime = classStartTime.minusMinutes(15);  // 7:45
-        LocalTime latestTime = classStartTime.plusMinutes(30);     // 8:30
+        LocalTime classStartTime = course.getStartTime();
+        LocalTime classEndTime = course.getEndTime();
 
         Attendance attendance = new Attendance();
         attendance.setStudent(student);
@@ -77,17 +101,15 @@ public class AttendanceViewController {
         attendance.setRemark(remark);
         attendance.setCreateTime(now);
 
-        // 判断打卡时间是否在允许范围内
-        if (currentTime.isBefore(earliestTime)) {
-            redirectAttributes.addFlashAttribute("message", "还未到打卡时间（7:45开始）");
+        if (currentTime.isBefore(classStartTime)) {
+            redirectAttributes.addFlashAttribute("message", "还未到上课时间（" + classStartTime + "开始）");
             return "redirect:/attendance/checkIn";
         }
-        if (currentTime.isAfter(latestTime)) {
-            redirectAttributes.addFlashAttribute("message", "已超过打卡时间（8:30截止），请联系教师");
+        if (currentTime.isAfter(classEndTime)) {
+            redirectAttributes.addFlashAttribute("message", "已下课（" + classEndTime + "），不能打卡");
             return "redirect:/attendance/checkIn";
         }
 
-        // 判断是否迟到
         if (currentTime.isAfter(classStartTime)) {
             attendance.setStatus("LATE");
             redirectAttributes.addFlashAttribute("message", "打卡成功，但已迟到！");
@@ -115,6 +137,19 @@ public class AttendanceViewController {
             @RequestParam(required = false, defaultValue = "checkInTime") String sortField,
             @RequestParam(required = false, defaultValue = "desc") String sortDir,
             Model model) {
+
+        // 从 session 获取当前用户角色和学号（通过 SecurityContext）
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = auth.getName();
+        String currentRole = auth.getAuthorities().iterator().next().getAuthority();
+
+        // USER 角色只能查自己的记录，强制覆盖 studentId
+        if ("ROLE_USER".equals(currentRole)) {
+            User user = userService.findByUsername(currentUsername);
+            if (user != null && user.getStudentId() != null) {
+                studentId = user.getStudentId();
+            }
+        }
 
         // 快速筛选：今天/本周/本月
         LocalDateTime now = LocalDateTime.now();
@@ -152,14 +187,10 @@ public class AttendanceViewController {
         model.addAttribute("sortField", sortField);
         model.addAttribute("sortDir", sortDir);
         model.addAttribute("size", size);
+        List<Course> courses = courseService.getAllCourses();
+        model.addAttribute("courses", courses);
 
         return "attendance-list";
-    }
-
-    // 获取当前学生ID（简化实现，实际应从 Spring Security Context 获取）
-    private String getCurrentStudentId() {
-        // TODO: 替换为 SecurityContextHolder.getContext().getAuthentication().getName()
-        return null;
     }
 
     // ==================== 批量导入页面 ====================
@@ -191,34 +222,28 @@ public class AttendanceViewController {
         return "redirect:/attendance/import";
     }
 
-    // ==================== 统计页面 ====================
     @GetMapping("/statistics")
     public String statistics(
             @RequestParam(required = false) String studentId,
             @RequestParam(required = false) String courseId,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime,
             Model model) {
 
-        if (studentId != null && !studentId.isEmpty()) {
-            AttendanceStatisticsDTO stats;
-            if (startTime != null && endTime != null) {
-                stats = attendanceService.getStudentStatisticsByDateRange(studentId, startTime, endTime);
-            } else {
-                stats = attendanceService.getStudentStatistics(studentId);
-            }
+        List<Course> courses = courseService.getAllCourses();
+        model.addAttribute("courses", courses);
+
+        // 学号 + 课程 = 该学生该课程的统计
+        if (studentId != null && !studentId.isEmpty() && courseId != null && !courseId.isEmpty()) {
+            AttendanceStatisticsDTO stats = attendanceService.getStudentStatisticsByCourse(studentId, courseId);
             model.addAttribute("stats", stats);
         }
-
-        if (courseId != null && !courseId.isEmpty() && startTime != null && endTime != null) {
-            AttendanceStatisticsDTO courseStats = attendanceService.getCourseStatistics(courseId, startTime, endTime);
-            model.addAttribute("courseStats", courseStats);
+        // 仅学号 = 该学生全部统计
+        else if (studentId != null && !studentId.isEmpty()) {
+            AttendanceStatisticsDTO stats = attendanceService.getStudentStatistics(studentId);
+            model.addAttribute("stats", stats);
         }
 
         model.addAttribute("studentId", studentId);
         model.addAttribute("courseId", courseId);
-        model.addAttribute("startTime", startTime);
-        model.addAttribute("endTime", endTime);
 
         return "attendance-statistics";
     }

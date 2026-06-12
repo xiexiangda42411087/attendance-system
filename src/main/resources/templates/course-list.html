@@ -88,18 +88,13 @@
                     </div>
                     <div class="row mb-3">
                         <div class="col-6">
-                            <label class="form-label">行数</label>
-                            <input type="number" id="rows" class="form-control">
+                            <label class="form-label">上课时间</label>
+                            <input type="time" id="startTime" class="form-control">
                         </div>
                         <div class="col-6">
-                            <label class="form-label">列数</label>
-                            <input type="number" id="cols" class="form-control">
+                            <label class="form-label">下课时间</label>
+                            <input type="time" id="endTime" class="form-control">
                         </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">排除座位</label>
-                        <input type="text" id="excludeSeats" class="form-control"
-                               placeholder="格式：row,col;row,col">
                     </div>
                     <div class="row mb-3">
                         <div class="col-4">
@@ -138,34 +133,46 @@
 <script>
     // 加载课程列表
     function loadCourses() {
-        fetch('/api/course')
-            .then(res => res.json())
-            .then(courses => {
-                const tbody = document.getElementById('courseTableBody');
-                if (courses.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">暂无课程数据</td></tr>';
-                    return;
-                }
-                tbody.innerHTML = courses.map(c => `
+    fetch('/api/course')
+        .then(res => res.json())
+        .then(courses => {
+            const tbody = document.getElementById('courseTableBody');
+            if (courses.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">暂无课程数据</td></tr>';
+                return;
+            }
+            tbody.innerHTML = courses.map(c => {
+                const teacherName = c.teacher ? c.teacher.realName || c.teacher.username : '-';
+                const classTime = c.startTime && c.endTime
+                    ? c.startTime + ' - ' + c.endTime
+                    : '-';
+                const weekDayNames = ['', '周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+                const weekDay = c.weekday ? weekDayNames[c.weekday] || c.weekday : '-';
+
+                return `
                     <tr>
-                        <td>${c.courseId}</td>
-                        <td>${c.name}</td>
-                        <td>${c.teacherName || '-'}</td>
-                        <td>${c.classroom || '-'}</td>
-                        <td>${c.startTime || '-'} ~ ${c.endTime || '-'}</td>
-                        <td>${c.weekDay || '-'}</td>
+                        <td>${c.courseId || '-'}</td>
+                        <td>${c.courseName || '-'}</td>
+                        <td>${teacherName}</td>
+                        <td>${c.classroomName || '-'}</td>
+                        <td>${classTime}</td>
+                        <td>${weekDay}</td>
                         <td class="table-col-action">
-                            <button class="btn btn-sm btn-outline-primary" onclick='editCourse(${JSON.stringify(c)})'>
+                            <button class="btn btn-sm btn-primary me-1" onclick='editCourse(${JSON.stringify(c).replace(/'/g, "&#39;")})'>
                                 <i class="bi bi-pencil-square"></i> 编辑
                             </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="deleteCourse('${c.courseId}')">
+                            <button class="btn btn-sm btn-danger" onclick="deleteCourse('${c.courseId}')">
                                 <i class="bi bi-trash"></i> 删除
                             </button>
                         </td>
                     </tr>
-                `).join('');
-            });
+                `;
+            }).join('');
+        })
+        .catch(err => {
+            document.getElementById('courseTableBody').innerHTML =
+                '<tr><td colspan="7" class="text-center py-4 text-muted">加载失败，请刷新重试</td></tr>';
+        });
     }
 
     // 编辑课程
@@ -178,9 +185,8 @@
     document.getElementById('className').value = course.className || '';
     document.getElementById('teacherId').value = course.teacher?.id || '';
     document.getElementById('classroomName').value = course.classroomName || '';
-    document.getElementById('rows').value = course.rows || '';
-    document.getElementById('cols').value = course.cols || '';
-    document.getElementById('excludeSeats').value = course.excludeSeats || '';
+    document.getElementById('startTime').value = course.startTime || '';
+    document.getElementById('endTime').value = course.endTime || '';
     document.getElementById('weekday').value = course.weekday || '';
     document.getElementById('startWeek').value = course.startWeek || '';
     document.getElementById('endWeek').value = course.endWeek || '';
@@ -207,7 +213,7 @@
     }
 
     // 提交表单
-document.getElementById('courseForm').addEventListener('submit', function(e) {
+    document.getElementById('courseForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const isEdit = document.getElementById('isEdit').value === 'true';
     const courseId = document.getElementById('courseId').value;
@@ -217,9 +223,8 @@ document.getElementById('courseForm').addEventListener('submit', function(e) {
         className: document.getElementById('className').value,
         teacher: { id: parseInt(document.getElementById('teacherId').value) },
         classroomName: document.getElementById('classroomName').value || null,
-        rows: document.getElementById('rows').value || null,
-        cols: document.getElementById('cols').value || null,
-        excludeSeats: document.getElementById('excludeSeats').value || null,
+        startTime: document.getElementById('startTime').value || null,
+        endTime: document.getElementById('endTime').value || null,
         weekday: document.getElementById('weekday').value || null,
         startWeek: document.getElementById('startWeek').value || null,
         endWeek: document.getElementById('endWeek').value || null
@@ -239,7 +244,7 @@ document.getElementById('courseForm').addEventListener('submit', function(e) {
         bootstrap.Modal.getInstance(document.getElementById('courseModal')).hide();
         loadCourses();
     });
-});
+    });
 
     // 页面加载
     loadCourses();

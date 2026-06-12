@@ -36,11 +36,14 @@
                     <label for="courseId" class="form-label">
                         <span class="text-danger">*</span> 选择课程
                     </label>
-                    <select class="form-select" id="courseId" name="courseId" required>
+                    <select class="form-select" id="courseId" name="courseId" required onchange="updateRule()">
                         <option value="">请选择课程</option>
-                        <option value="CS101">Java程序设计 - 软件工程1班</option>
-                        <option value="CS102">数据库原理 - 软件工程2班</option>
-                        <option value="CS103">数据结构 - 计算机科学1班</option>
+                        <option th:each="course : ${courses}"
+                                th:value="${course.courseId}"
+                                th:data-start="${course.startTime}"
+                                th:data-end="${course.endTime}"
+                                th:text="${course.courseId} + ' - ' + ${course.courseName}">
+                        </option>
                     </select>
                 </div>
 
@@ -58,13 +61,11 @@
                 </div>
 
                 <!-- 打卡规则提示 -->
-                <div class="alert alert-warning small mb-4">
+                <div class="alert alert-warning small mb-4" id="checkRule">
                     <i class="bi bi-exclamation-triangle-fill"></i>
                     <strong>打卡规则：</strong>
-                    <ul class="mb-0 mt-1">
-                        <li>打卡时间：7:45 - 8:30</li>
-                        <li>8:00 后打卡记为<strong>迟到</strong></li>
-                        <li>超出时间范围请联系教师</li>
+                    <ul class="mb-0 mt-1" id="ruleContent">
+                        <li>请先选择课程</li>
                     </ul>
                 </div>
 
@@ -98,6 +99,28 @@
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> 提交中...';
     });
+
+    function updateRule() {
+        const select = document.getElementById('courseId');
+        const selectedOption = select.options[select.selectedIndex];
+        const startTime = selectedOption.getAttribute('data-start');
+        const endTime = selectedOption.getAttribute('data-end');
+        const ruleContent = document.getElementById('ruleContent');
+
+        if (!startTime || !endTime) {
+            ruleContent.innerHTML = '<li>请先选择课程</li>';
+            return;
+        }
+
+        const start = startTime.substring(0, 5);
+        const end = endTime.substring(0, 5);
+
+        ruleContent.innerHTML =
+            '<li>上课时间：' + start + ' - ' + end + '</li>' +
+            '<li>打卡时间：' + start + ' - ' + end + '</li>' +
+            '<li>' + start + ' 后打卡记为<strong>迟到</strong></li>' +
+            '<li>下课后不能再打卡</li>';
+    }
 </script>
 </body>
 </html>

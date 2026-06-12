@@ -26,4 +26,8 @@ public class User {
 
     @Column(name = "create_time")
     private Timestamp createTime;
+
+    @Column(name = "student_id", length = 20)
+    private String studentId;
+
 }

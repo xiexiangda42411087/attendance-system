@@ -53,4 +53,12 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long>, J
     List<Object[]> countByCourseGroupByStatus(@Param("courseId") String courseId,
                                               @Param("startTime") LocalDateTime startTime,
                                               @Param("endTime") LocalDateTime endTime);
+
+    // 某学生某课程的统计
+    @Query("SELECT a.status, COUNT(a) FROM Attendance a " +
+            "WHERE a.student.studentId = :studentId AND a.courseId = :courseId " +
+            "GROUP BY a.status")
+    List<Object[]> countByStudentAndCourseGroupByStatus(
+            @Param("studentId") String studentId,
+            @Param("courseId") String courseId);
 }

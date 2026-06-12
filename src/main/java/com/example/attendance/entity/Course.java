@@ -25,14 +25,11 @@ public class Course {
     @Column(name = "classroom_name", length = 50)
     private String classroomName;
 
-    @Column(name = "rows")
-    private Integer rows;
+    @Column(name = "start_time")
+    private java.time.LocalTime startTime;
 
-    @Column(name = "cols")
-    private Integer cols;
-
-    @Column(name = "exclude_seats", length = 200)
-    private String excludeSeats;
+    @Column(name = "end_time")
+    private java.time.LocalTime endTime;
 
     @Column(name = "weekday")
     private Integer weekday;        // 1-7 对应周一到周日

@@ -357,12 +357,60 @@ form {
     text-align: center;
 }
 
+/* 操作列固定宽度 */
 .table-col-action {
     width: 160px;
     text-align: center;
+    white-space: nowrap;
 }
 
-/* ========== Bootstrap 兼容样式 ========== */
+/* 操作列按钮样式 */
+.table-col-action .btn-outline-primary {
+    border-color: #667eea;
+    color: #667eea;
+    font-weight: 500;
+}
+
+.table-col-action .btn-outline-primary:hover {
+    background: #667eea;
+    color: #fff;
+}
+
+.table-col-action .btn-outline-danger {
+    border-color: #e74c3c;
+    color: #e74c3c;
+    font-weight: 500;
+}
+
+.table-col-action .btn-outline-danger:hover {
+    background: #e74c3c;
+    color: #fff;
+}
+
+/* 操作列按钮（实心） */
+.table-col-action .btn-primary {
+    background: #667eea;
+    border-color: #667eea;
+    color: #fff;
+    font-weight: 500;
+}
+
+.table-col-action .btn-primary:hover {
+    background: #5a6fd6;
+    border-color: #5a6fd6;
+}
+
+.table-col-action .btn-danger {
+    background: #e74c3c;
+    border-color: #e74c3c;
+    color: #fff;
+    font-weight: 500;
+}
+
+.table-col-action .btn-danger:hover {
+    background: #c0392b;
+    border-color: #c0392b;
+}
 
 /* 页面主体背景调整 */
 body {
@@ -402,10 +450,17 @@ body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
 }
 
-/* 响应式表格容器 */
+/* 表格容器横向滚动 */
 .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     border-radius: 12px;
-    overflow: hidden;
+}
+
+/* 表格最小宽度，防止列被压缩 */
+.table {
+    min-width: 800px;
+    white-space: nowrap;
 }
 
 /* 导航栏强制横排 */
@@ -431,4 +486,35 @@ body {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
+}
+
+/* 表格文字不换行 */
+.table td, .table th {
+    white-space: nowrap;
+}
+
+/* 特定列可以允许换行 */
+.table .col-wrap {
+    white-space: normal;
+}
+
+/* 搜索框 placeholder 完整显示 */
+.search-input {
+    min-width: 160px;
+}
+
+.search-input::placeholder {
+    font-size: 13px;
+    overflow: visible;
+    text-overflow: clip;
+}
+
+/* 标题不换行 */
+h2.text-nowrap {
+    white-space: nowrap;
+}
+
+/* 按钮不换行 */
+.btn.text-nowrap {
+    white-space: nowrap;
 }

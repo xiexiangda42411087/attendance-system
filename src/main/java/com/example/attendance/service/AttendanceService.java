@@ -34,4 +34,6 @@ public interface AttendanceService {
     AttendanceStatisticsDTO getCourseStatistics(String courseId,
                                                 LocalDateTime startTime,
                                                 LocalDateTime endTime);
+
+    AttendanceStatisticsDTO getStudentStatisticsByCourse(String studentId, String courseId);
 }
